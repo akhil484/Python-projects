@@ -1,9 +1,13 @@
-from pdf2image import convert_from_path, convert_from_bytes
+from PyPDF2 import PdfReader
 
 
-import tempfile
+reader = PdfReader("sample.pdf")
+number_of_pages = len(reader.pages)
 
-with tempfile.TemporaryDirectory() as path:
-    # images_from_path = convert_from_path('sample.pdf', output_folder=path)
-    images = convert_from_path('sample.pdf', grayscale=True, fmt='png')
-    print(type(images[0]))
+print(number_of_pages)
+
+for page in reader.pages:
+	text = page.extract_text()
+	print(text)
+
+
