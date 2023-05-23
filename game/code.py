@@ -1,7 +1,6 @@
 import pygame
 import sys
 from pygame.locals import *
-import random
 
 pygame.init()
 
@@ -14,6 +13,9 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+PINK = (181, 218, 186)
+VODKA = (191, 184, 244)
+GRAY = (143, 134, 126)
 
 # Screen information
 SCREEN_WIDTH = 500
@@ -33,16 +35,16 @@ class Ball(pygame.sprite.Sprite):
         self.speed = [5, 5]
 
     def move(self):
+        global game_running  # Declare game_running as a global variable
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
         if self.rect.bottom > 487 or self.rect.top < 20:
-        	game_running = False
+            game_running = False
 
         if self.rect.right > SCREEN_WIDTH or self.rect.left < 0:
-        	self.speed[0] *= -1
+            self.speed[0] *= -1
 
     def reverse_direction(self):
-        # self.speed[0] *= -1
         self.speed[1] *= -1
 
     def draw(self, surface):
@@ -69,31 +71,64 @@ class Player(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 
+def show_game_over_screen():
+    restart_button = pygame.Rect(200, 100, 100, 50)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == MOUSEBUTTONDOWN and event.button == 1:
+                if restart_button.collidepoint(event.pos):
+                    return True
+
+        DISPLAYSURF.fill(VODKA)
+
+        pygame.draw.rect(DISPLAYSURF, BLACK, restart_button)
+        
+        # Render the text for the restart button
+        font = pygame.font.Font(None, 24)
+        button_text = font.render("Restart", True, WHITE)
+        text_rect = button_text.get_rect(center=restart_button.center)
+
+        DISPLAYSURF.blit(button_text, text_rect.topleft)  # Blit the text onto the button surface
+        pygame.display.update()
+        FramePerSec.tick(FPS)
+
+
 def play_game():
-	P1 = Player(250, 20)
-	P2 = Player(250, 480)
-	b = Ball()
+    global game_running  # Declare game_running as a global variable
+    P1 = Player(250, 20)
+    P2 = Player(250, 480)
+    b = Ball()
 
-	while game_running:
-	    for event in pygame.event.get():
-	        if event.type == QUIT:
-	            pygame.quit()
-	            sys.exit()
+    while True:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
 
-	    P1.update()
-	    P2.update()
-	    b.move()
+        if game_running:
+            P1.update()
+            P2.update()
+            b.move()
 
-	    # Collision detection
-	    if b.rect.colliderect(P1.rect) or b.rect.colliderect(P2.rect):
-	        b.reverse_direction()
+            # Collision detection
+            if b.rect.colliderect(P1.rect) or b.rect.colliderect(P2.rect):
+                b.reverse_direction()
 
-	    DISPLAYSURF.fill(BLUE)
-	    P1.draw(DISPLAYSURF)
-	    P2.draw(DISPLAYSURF)
-	    b.draw(DISPLAYSURF)
+            DISPLAYSURF.fill(GRAY)
+            P1.draw(DISPLAYSURF)
+            P2.draw(DISPLAYSURF)
+            b.draw(DISPLAYSURF)
 
-	    pygame.display.update()
-	    FramePerSec.tick(FPS)
+            pygame.display.update()
+            FramePerSec.tick(FPS)
+        else:
+            if show_game_over_screen():
+                game_running = True
+                b.rect.center = (250, 250)
+
 
 play_game()
