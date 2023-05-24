@@ -1,6 +1,7 @@
 import pygame
 import sys
 import asyncio
+import pygbag
 from pygame.locals import *
 
 pygame.init()
@@ -88,7 +89,7 @@ async def show_game_over_screen():
         DISPLAYSURF.fill(VODKA)
 
         pygame.draw.rect(DISPLAYSURF, BLACK, restart_button)
-        
+
         # Render the text for the restart button
         font = pygame.font.Font(None, 24)
         button_text = font.render("Restart", True, WHITE)
@@ -142,9 +143,4 @@ async def main():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        pass
-    finally:
-        loop.close()
+    loop.run_until_complete(main())
