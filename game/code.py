@@ -1,5 +1,6 @@
 import pygame
 import sys
+import asyncio
 from pygame.locals import *
 
 pygame.init()
@@ -35,14 +36,15 @@ class Ball(pygame.sprite.Sprite):
         self.speed = [5, 5]
 
     def move(self):
-        global game_running  # Declare game_running as a global variable
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
         if self.rect.bottom > 487 or self.rect.top < 20:
-            game_running = False
+            return False
 
         if self.rect.right > SCREEN_WIDTH or self.rect.left < 0:
             self.speed[0] *= -1
+
+        return True
 
     def reverse_direction(self):
         self.speed[1] *= -1
@@ -71,7 +73,7 @@ class Player(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 
-def show_game_over_screen():
+async def show_game_over_screen():
     restart_button = pygame.Rect(200, 100, 100, 50)
 
     while True:
@@ -95,9 +97,10 @@ def show_game_over_screen():
         DISPLAYSURF.blit(button_text, text_rect.topleft)  # Blit the text onto the button surface
         pygame.display.update()
         FramePerSec.tick(FPS)
+        await asyncio.sleep(0)  # Allow other tasks to run
 
 
-def play_game():
+async def play_game():
     global game_running  # Declare game_running as a global variable
     P1 = Player(250, 20)
     P2 = Player(250, 480)
@@ -112,7 +115,8 @@ def play_game():
         if game_running:
             P1.update()
             P2.update()
-            b.move()
+            if not b.move():
+                game_running = False
 
             # Collision detection
             if b.rect.colliderect(P1.rect) or b.rect.colliderect(P2.rect):
@@ -126,9 +130,21 @@ def play_game():
             pygame.display.update()
             FramePerSec.tick(FPS)
         else:
-            if show_game_over_screen():
+            if await show_game_over_screen():
                 game_running = True
                 b.rect.center = (250, 250)
 
 
-play_game()
+async def main():
+    while True:
+        await play_game()
+
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        loop.close()
